@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* Design tokens. Text colours are chosen for at least 4.5:1 contrast on ivory (WCAG AA). */
+@theme {
+  --color-ivory: #FBF7F0;
+  --color-cream: #F3ECE1;
+  --color-line: #E4DACB;
+  --color-ink: #2F2D2B;        /* charcoal, primary text */
+  --color-ink-soft: #5B5650;   /* secondary text */
+  --color-sage: #6F8F78;
+  --color-sage-deep: #48644F;
+  --color-sage-soft: #E3EBE2;
+  --color-rose: #C07F82;
+  --color-rose-deep: #8F4E55;
+  --color-rose-soft: #F4E3E2;
+  --color-terracotta: #C47A5A;
+  --color-terracotta-deep: #8E4B2F;
+  --color-terracotta-soft: #F5E4DA;
+  --color-lavender: #A598C2;
+  --color-lavender-deep: #5F5187;
+  --color-lavender-soft: #ECE8F4;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+}
+
+/* iOS Safari: adopt the user's Dynamic Type size. All sizes below use rem, so they scale with it. */
+@supports (font: -apple-system-body) {
+  html { font: -apple-system-body; }
+}
+
+html, body {
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+body { min-height: 100dvh; }
+
+/* Inputs at 16px+ stop iOS from zooming in on focus. */
+input, select, textarea, button { font: inherit; }
+input, select, textarea { font-size: max(1rem, 16px); }
+
+.pt-safe { padding-top: max(env(safe-area-inset-top), 0.75rem); }
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.75rem); }
+
+:focus-visible { outline: 3px solid var(--color-lavender-deep); outline-offset: 2px; border-radius: 0.5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

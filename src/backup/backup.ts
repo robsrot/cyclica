@@ -18,6 +18,7 @@ import { APP_VERSION } from '../app/version';
 import type { CyclicaDB, SealedRow, SnapshotRow, VaultRow } from '../data/db';
 import type { Session } from '../data/session';
 import { BaseRecord, newId, nowIso } from '../domain/model/base';
+import { schemaFor } from '../domain/model/records';
 import { openBytes, openJson, sealBytes, sealJson, type Sealed } from '../security/crypto';
 import { readVault, unlockVaultRow, type Secret } from '../security/vault';
 
@@ -133,7 +134,9 @@ function validateRecords(raw: unknown[]): { records: BaseRecord[]; invalid: Inva
   const invalid: InvalidEntry[] = [];
   const seen = new Set<string>();
   for (const item of raw) {
-    const parsed = BaseRecord.safeParse(item);
+    const kind = (item as { kind?: unknown })?.kind;
+    const schema = typeof kind === 'string' ? (schemaFor(kind) ?? BaseRecord) : BaseRecord;
+    const parsed = schema.safeParse(item) as { success: true; data: BaseRecord } | { success: false };
     const id = typeof (item as { id?: unknown })?.id === 'string' ? (item as { id: string }).id : null;
     if (!parsed.success) {
       invalid.push({ id, reason: 'Failed validation' });

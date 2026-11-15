@@ -26,7 +26,7 @@ const PASS = 'backup test passphrase';
 let n = 0;
 const freshName = () => `backup-test-${Date.now()}-${n++}`;
 
-function rec(notes: string, kind = 'note'): BaseRecord {
+function rec(notes: string, kind = 'test-note'): BaseRecord {
   const now = nowIso();
   return { id: newId(), kind, schemaVersion: 1, createdAt: now, updatedAt: now, notes };
 }
@@ -37,7 +37,7 @@ async function deviceWithData(count = 3) {
   const session = new Session(db, dataKey);
   await session.load();
   const records: BaseRecord[] = [];
-  for (let i = 0; i < count; i++) records.push(await session.put(rec(`entry ${i} – Übelkeit`, i % 2 ? 'headache' : 'note')));
+  for (let i = 0; i < count; i++) records.push(await session.put(rec(`entry ${i} – Übelkeit`, i % 2 ? 'test-other' : 'test-note')));
   return { db, session, records, recoveryCode };
 }
 
@@ -50,7 +50,7 @@ describe('backup file', () => {
   it('contains no readable personal data', async () => {
     const { text } = await createBackup(device.session);
     expect(text).not.toContain('Übelkeit');
-    expect(text).not.toContain('headache');
+    expect(text).not.toContain('test-other');
     expect(text).not.toContain(PASS);
     const parsed = JSON.parse(text);
     expect(Object.keys(parsed).sort()).toEqual(['createdAt', 'format', 'formatVersion', 'payload', 'vault']);
@@ -279,8 +279,8 @@ describe('plain export', () => {
     const files = buildPlainExport(device.session.all(), new Date(2026, 10, 8));
     expect(files.map((f) => f.name)).toEqual([
       'cyclica-export-2026-11-08.json',
-      'cyclica-export-2026-11-08-headache.csv',
-      'cyclica-export-2026-11-08-note.csv',
+      'cyclica-export-2026-11-08-test-note.csv',
+      'cyclica-export-2026-11-08-test-other.csv',
     ]);
     expect(JSON.parse(files[0]!.text).records).toHaveLength(3);
   });

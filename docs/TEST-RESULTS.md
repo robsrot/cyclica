@@ -126,3 +126,61 @@ Environment: Windows 11, Node 24.9, Vitest 5.1. The browser checks used the Clau
   - removing the Home Screen icon, reinstalling and restoring
 - Backups containing real tracked entries in the UI. Tracking arrives in M3. Until then only the unit tests exercise backups with data, including umlauts and multiple record kinds.
 - The CSV opening correctly in Numbers or Excel.
+
+## M3 (tracking, journal, Today, timeline) — 2026-11-15
+
+### Automated (`npm test`): 75 / 75 passed (25 new)
+
+**Record schemas**
+- Every pillar accepts valid entries and rejects out-of-range values (e.g. severity 11, Bristol type 8, unknown flow, a malformed time).
+- Every pillar field is optional: a missing field means "not recorded".
+
+**Periods and cycle day**
+- Consecutive bleeding days form one period. A single unrecorded day inside a period doesn't split it.
+- A new period starts after 2 or more days without a period day, and the gap is configurable.
+- Spotting alone isn't a period day.
+- Input order and duplicate dates don't change the result.
+- Cycle lengths are start-to-start for completed cycles only, with no assumed length.
+- Cycle day is null ("insufficient data") before the first recorded start, and updates when a period date is corrected.
+
+**Time**
+- Calendar arithmetic is correct across month ends, leap years and daylight-saving changes.
+- An entry made in another time zone keeps its wall-clock time and offset when edited.
+- Ordering uses the real instant across time zones.
+
+**Day view**
+- Only that day's entries are collected, and "none today" is kept distinct from "not recorded".
+- Timeline order: all-day entries first, then by time, with sleep at its wake-up time.
+- Durations are labelled as calculated or entered, and a missing duration stays missing.
+- Descriptions contain no causal wording.
+
+**session.save**
+- Validates per kind and keeps the calendar day in sync with the time.
+- Several entries of the same kind can exist on one day.
+- Everything round-trips through encryption.
+
+### Manual, production build in the browser (375×812)
+
+| Check | Result |
+|---|---|
+| Today: all five areas shown as "○ Not recorded"; cycle card shows "insufficient data" | Pass |
+| Period entry (medium flow + cramps, moderate) → tile "✓ Recorded"; cycle card "Period day 1 · calculated"; backup reminder appears | Pass |
+| Two headaches on one day (one with end time + new medication "Ibuprofen 400 mg", rated "partly helped"), digestion, energy + sleepiness, sleep (calculated 7 h 50 min in bed), lunch with a new food item + Dairy tag, caffeine, note | Pass |
+| Timeline order: all-day entries, then 07:05 sleep → 08:00 caffeine → 09:10 medication → 09:10–11:00 headache → 12:30 lunch → 13:30 digestion → 18:30 headache → 20:00 note | Pass |
+| Entries on a past day via the day switcher | Pass |
+| Correcting a period date (15 → 13 Nov) moves flow and symptoms; cycle day recalculates (day 3 on 15 Nov) | Pass |
+| "None today" for headache, then recording a headache that day → marker removed automatically | Pass |
+| Editing an entry (headache severity) updates the timeline | Pass |
+| Search finds note text and medication names; opening a result → delete with confirmation | Pass |
+| "Recorded in the 24 hours before" panel on a headache lists only your own entries, with the "not necessarily related" wording | Pass |
+| Settings → Tracking options: custom cycle symptom added; food list shows the item created from the meal | Pass |
+| App update: new build → "A new version is ready" banner → Update → unlock → data intact | Pass |
+| No console errors | Pass |
+
+Note: the first scripted run reported two entries as unsaved. Repeated step by step and on another day, they saved correctly. The cause was the test script starting the next entry before the previous save had finished. In the app that can't happen, because the open form covers the add button.
+
+### Not yet verified / not built
+
+- **Meal photos**: not built yet. Planned as an encrypted, on-device-only addition.
+- Everything on a real iPhone: the date/time pickers, VoiceOver reading of the tiles and chips, Dynamic Type at large sizes.
+- Performance with years of data (expected fine: a few thousand small records), not measured yet.

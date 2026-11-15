@@ -12,6 +12,7 @@ import {
 } from '../../platform/device';
 import { MIN_PASSPHRASE_LENGTH, WrongSecretError, changePassphrase, rotateRecoveryCode } from '../../security/vault';
 import { Button, Card, Field, Notice, PageTitle, Spinner } from '../../ui/components';
+import { TrackingOptionsCard } from './TrackingOptions';
 import { BackupCard, DeleteCard, ExportCard, RestoreCard, SnapshotsCard } from '../data/DataCards';
 
 const AUTO_LOCK_OPTIONS = [
@@ -26,6 +27,7 @@ export function Settings({ session }: { session: Session }) {
   return (
     <div className="flex flex-col gap-5">
       <PageTitle>Settings</PageTitle>
+      <TrackingOptionsCard session={session} />
       <h2 className="-mb-2 text-sm font-semibold tracking-wide text-ink-soft uppercase">Your data</h2>
       <BackupCard session={session} />
       <RestoreCard session={session} />

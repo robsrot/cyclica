@@ -8,6 +8,8 @@
  */
 import { z } from 'zod';
 import { BaseRecord, nowIso } from '../domain/model/base';
+import { isTimed, schemaFor, type Kind, type RecordOf } from '../domain/model/records';
+import { wallDate } from '../domain/time';
 import { openJson, sealJson } from '../security/crypto';
 import type { CyclicaDB } from './db';
 
@@ -21,9 +23,18 @@ export interface Settings {
   autoLockMinutes: number;
   /** Show a backup reminder when the last backup is older than this many days and there are unsaved changes. */
   backupReminderDays: number;
+  /** Food categories offered as quick tags on meals. Fully user-editable; none are assumed to matter. */
+  foodCategories: string[];
+  /** The user's own extra cycle symptoms, offered next to the built-in ones. */
+  customCycleSymptoms: string[];
 }
 
-export const DEFAULT_SETTINGS: Settings = { autoLockMinutes: 5, backupReminderDays: 7 };
+export const DEFAULT_SETTINGS: Settings = {
+  autoLockMinutes: 5,
+  backupReminderDays: 7,
+  foodCategories: ['Dairy', 'Gluten', 'Caffeine', 'Alcohol'],
+  customCycleSymptoms: [],
+};
 
 /**
  * Bookkeeping for the backup reminder. `changes` counts every create, edit and delete on this device.
@@ -73,7 +84,10 @@ export class Session {
     for (const row of rows) {
       try {
         const value = await openJson(key, 'record', row.id, row);
-        const parsed = BaseRecord.safeParse(value);
+        const kind = (value as { kind?: unknown })?.kind;
+        const parsed = (typeof kind === 'string' ? (schemaFor(kind) ?? BaseRecord) : BaseRecord).safeParse(value) as
+          | { success: true; data: BaseRecord }
+          | { success: false };
         if (!parsed.success) {
           unreadable.push({ id: row.id, reason: 'Decrypted, but the content failed validation.' });
           continue;
@@ -158,6 +172,22 @@ export class Session {
 
   get size(): number {
     return this.records.size;
+  }
+
+  /** All records of one kind (typed). */
+  byKind<K extends Kind>(kind: K): RecordOf<K>[] {
+    const out: RecordOf<K>[] = [];
+    for (const r of this.records.values()) if (r.kind === kind) out.push(r as unknown as RecordOf<K>);
+    return out;
+  }
+
+  /** Validates against the schema registered for the record's kind, then saves. */
+  async save<K extends Kind>(record: RecordOf<K>): Promise<RecordOf<K>> {
+    const schema = schemaFor(record.kind);
+    if (!schema) throw new Error(`Unknown record kind: ${record.kind}`);
+    // Timed records: the calendar day always follows the wall-clock time.
+    const synced = isTimed(record) ? { ...record, date: wallDate(record.occurredAt) } : record;
+    return this.put(synced as BaseRecord, schema as unknown as z.ZodType<BaseRecord>) as Promise<RecordOf<K>>;
   }
 
   /**

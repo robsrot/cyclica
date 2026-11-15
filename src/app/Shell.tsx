@@ -1,7 +1,8 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { Session } from '../data/session';
 import { Settings } from '../features/settings/Settings';
-import { BackupReminder } from '../features/data/DataCards';
+import { EditorHost } from '../features/track/editor';
+import { Today } from '../features/today/Today';
 import { startAutoLock } from '../security/autoLock';
 import { Card, PageTitle } from '../ui/components';
 import { lockNow } from './appState';
@@ -15,6 +16,7 @@ export function Shell({ session }: { session: Session }) {
   useEffect(() => startAutoLock(() => session.settings.autoLockMinutes, lockNow), [session]);
 
   return (
+    <EditorHost session={session}>
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
       <main className="flex-1 px-4 pt-safe pb-28">
         <div className="flex justify-end pt-1">
@@ -28,12 +30,7 @@ export function Shell({ session }: { session: Session }) {
             <GearIcon />
           </button>
         </div>
-        {tab === 'today' && (
-          <>
-            <BackupReminder session={session} onOpenSettings={() => setTab('settings')} />
-            <Today />
-          </>
-        )}
+        {tab === 'today' && <Today session={session} onOpenSettings={() => setTab('settings')} />}
         {tab === 'patterns' && <Placeholder title="My Patterns" text="Pattern analysis of your own records arrives in milestone M4, once tracking exists." />}
         {tab === 'learn' && <Placeholder title="Learn & Improve" text="The source-verified science library arrives in milestone M5." />}
         {tab === 'settings' && <Settings session={session} />}
@@ -49,21 +46,7 @@ export function Shell({ session }: { session: Session }) {
         </div>
       </nav>
     </div>
-  );
-}
-
-function Today() {
-  const date = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
-  return (
-    <>
-      <PageTitle sub={date}>Today</PageTitle>
-      <Card>
-        <p className="leading-relaxed text-ink-soft">
-          Your encrypted storage is set up and working. Tracking for your cycle, headaches, digestion, energy and sleep, plus
-          the daily journal and timeline, arrive in milestone M3.
-        </p>
-      </Card>
-    </>
+    </EditorHost>
   );
 }
 

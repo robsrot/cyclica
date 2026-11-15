@@ -23,7 +23,7 @@ const PASS = 'a long enough passphrase';
 
 function sampleRecord() {
   const now = nowIso();
-  return { id: newId(), kind: 'note', schemaVersion: 1, createdAt: now, updatedAt: now, notes: 'slept badly' };
+  return { id: newId(), kind: 'test-note', schemaVersion: 1, createdAt: now, updatedAt: now, notes: 'slept badly' };
 }
 
 describe('vault', () => {

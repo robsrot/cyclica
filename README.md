@@ -4,6 +4,7 @@ A private, local-first menstrual cycle and wellbeing tracker. It's a Progressive
 
 - Design and decisions: [docs/DESIGN.md](docs/DESIGN.md)
 - Test results per milestone: [docs/TEST-RESULTS.md](docs/TEST-RESULTS.md)
+- Analysis methodology: [docs/ANALYSIS.md](docs/ANALYSIS.md)
 
 ## Status
 
@@ -13,7 +14,8 @@ A private, local-first menstrual cycle and wellbeing tracker. It's a Progressive
 | M1 Security core (passphrase, recovery code, encryption, auto-lock) | Built and tested on desktop. **Not yet tested on a real iPhone.** |
 | M2 Backup / restore / export / delete | Built and tested on desktop. **Test backup → delete → restore on your iPhone before trusting it with real data.** |
 | M3 Tracking: four areas, meal & lifestyle journal, Today, timeline, search | Built and tested on desktop. Meal photos not yet included. |
-| M4–M6 | Not started |
+| M4 My Patterns: statistics, charts, comparisons, experiments | Built; validated on synthetic data with known effects; tested on desktop. Method: [docs/ANALYSIS.md](docs/ANALYSIS.md) |
+| M5–M6 | Not started |
 
 ## Develop on Windows
 

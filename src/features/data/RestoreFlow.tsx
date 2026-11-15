@@ -16,6 +16,8 @@ import { readTextFile } from '../../platform/files';
 import { WrongSecretError } from '../../security/vault';
 import { Button, Field, Notice, Spinner } from '../../ui/components';
 import { formatDateTime } from '../../ui/format';
+import { formatDayShort } from '../../domain/time';
+import { KIND_LABEL } from '../../domain/model/labels';
 
 type Target = { kind: 'fresh'; db: CyclicaDB; onRestored: (dataKey: CryptoKey) => void } | { kind: 'session'; session: Session };
 
@@ -229,13 +231,13 @@ function Preview({
       <div className="rounded-2xl bg-cream p-4">
         <p className="font-semibold">Backup from {formatDateTime(opened.createdAt)}</p>
         <p className="mt-1 text-ink-soft">
-          {opened.records.length} entries{first && last ? `, created ${formatDateTime(first)} – ${formatDateTime(last)}` : ''}
+          {opened.records.length} entries{first && last ? `, covering ${formatDayShort(first)} – ${formatDayShort(last)}` : ''}
         </p>
         {Object.keys(byKind).length > 0 && (
           <ul className="mt-2 text-sm text-ink-soft">
             {Object.entries(byKind).map(([k, v]) => (
               <li key={k}>
-                {k}: {v}
+                {KIND_LABEL[k] ?? k}: {v}
               </li>
             ))}
           </ul>

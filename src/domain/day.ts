@@ -224,6 +224,8 @@ export function describe(r: AnyRecord, l: Lookups): { title: string; detail: str
       return { title: DAY_STATUS_LABEL[r.area], detail: 'Recorded as none for this day' };
     case 'foodItem':
       return { title: r.name, detail: join([r.ingredients?.join(', '), r.categories?.join(', ')]) };
+    case 'experiment':
+      return { title: `Experiment: ${r.title}`, detail: join([`from ${r.startDate}`, r.change, r.notes]) };
     default:
       return { title: KIND_LABEL[(r as { kind: string }).kind] ?? 'Entry', detail: '' };
   }

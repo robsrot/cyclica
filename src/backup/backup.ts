@@ -228,8 +228,11 @@ export function summarise(records: BaseRecord[]): { byKind: Record<string, numbe
   let last: string | null = null;
   for (const r of records) {
     byKind[r.kind] = (byKind[r.kind] ?? 0) + 1;
-    if (!first || r.createdAt < first) first = r.createdAt;
-    if (!last || r.createdAt > last) last = r.createdAt;
+    // The day an entry is about (not when it was typed in); reusable items without a day are skipped.
+    const d = (r as { date?: unknown }).date;
+    if (typeof d !== 'string') continue;
+    if (!first || d < first) first = d;
+    if (!last || d > last) last = d;
   }
   return { byKind, first, last };
 }

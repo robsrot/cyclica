@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { BaseRecord, nowIso } from '../domain/model/base';
 import { isTimed, schemaFor, type Kind, type RecordOf } from '../domain/model/records';
 import { wallDate } from '../domain/time';
+import { DEFAULT_THRESHOLDS, type Thresholds } from '../domain/analysis/questions';
 import { openJson, sealJson } from '../security/crypto';
 import type { CyclicaDB } from './db';
 
@@ -27,6 +28,8 @@ export interface Settings {
   foodCategories: string[];
   /** The user's own extra cycle symptoms, offered next to the built-in ones. */
   customCycleSymptoms: string[];
+  /** Minimum-data rules for My Patterns (see docs/ANALYSIS.md). */
+  thresholds: Thresholds;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -34,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   backupReminderDays: 7,
   foodCategories: ['Dairy', 'Gluten', 'Caffeine', 'Alcohol'],
   customCycleSymptoms: [],
+  thresholds: DEFAULT_THRESHOLDS,
 };
 
 /**

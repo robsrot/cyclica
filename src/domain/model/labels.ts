@@ -14,6 +14,7 @@ export const KIND_LABEL: Record<string, string> = {
   medication: 'Medication',
   note: 'Note',
   dayStatus: 'None today',
+  experiment: 'Experiment',
 };
 
 export const FLOW_LABEL = { spotting: 'Spotting', light: 'Light', medium: 'Medium', heavy: 'Heavy' } as const;

@@ -201,6 +201,20 @@ export const DayStatus = DayBase.extend({
   status: z.literal('none'),
 });
 
+// ---------- Personal experiments ----------
+
+export const EXPERIMENT_OUTCOMES = ['headacheDay', 'energy', 'sleepiness', 'digestiveSymptom', 'bloating', 'sleepMinutes', 'sleepQuality'] as const;
+export const Experiment = BaseRecord.extend({
+  kind: z.literal('experiment'),
+  title: z.string().min(1).max(120),
+  /** What the user changed, in their own words. */
+  change: z.string().max(1000).optional(),
+  startDate: LocalDateZ,
+  plannedEndDate: LocalDateZ.optional(),
+  endedDate: LocalDateZ.optional(),
+  outcomes: z.array(z.enum(EXPERIMENT_OUTCOMES)).min(1),
+});
+
 // ---------- registry ----------
 
 export const SCHEMAS = {
@@ -217,6 +231,7 @@ export const SCHEMAS = {
   medication: Medication,
   note: Note,
   dayStatus: DayStatus,
+  experiment: Experiment,
 } as const;
 
 export type Kind = keyof typeof SCHEMAS;
@@ -236,6 +251,7 @@ export type LifestyleRec = RecordOf<'lifestyle'>;
 export type MedicationRec = RecordOf<'medication'>;
 export type NoteRec = RecordOf<'note'>;
 export type DayStatusRec = RecordOf<'dayStatus'>;
+export type ExperimentRec = RecordOf<'experiment'>;
 
 export function isKind(k: string): k is Kind {
   return k in SCHEMAS;

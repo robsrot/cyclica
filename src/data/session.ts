@@ -19,9 +19,30 @@ export interface UnreadableRecord {
 export interface Settings {
   /** 0 = lock as soon as the app goes to the background. */
   autoLockMinutes: number;
+  /** Show a backup reminder when the last backup is older than this many days and there are unsaved changes. */
+  backupReminderDays: number;
 }
 
-export const DEFAULT_SETTINGS: Settings = { autoLockMinutes: 5 };
+export const DEFAULT_SETTINGS: Settings = { autoLockMinutes: 5, backupReminderDays: 7 };
+
+/**
+ * Bookkeeping for the backup reminder. `changes` counts every create, edit and delete on this device.
+ * A backup records the counter value, so "changes since last backup" is exact (it includes deletions).
+ */
+export interface BackupState {
+  changes: number;
+  changesAtLastBackup: number;
+  lastBackupAt: string | null;
+  /** How the last backup file left the app: via the share sheet, or as a browser download. */
+  lastBackupMethod: 'shared' | 'downloaded' | null;
+}
+
+export const INITIAL_BACKUP_STATE: BackupState = {
+  changes: 0,
+  changesAtLastBackup: 0,
+  lastBackupAt: null,
+  lastBackupMethod: null,
+};
 
 type Listener = () => void;
 
@@ -31,6 +52,7 @@ export class Session {
   private version = 0;
   unreadable: UnreadableRecord[] = [];
   settings: Settings = DEFAULT_SETTINGS;
+  backupState: BackupState = INITIAL_BACKUP_STATE;
 
   constructor(
     readonly db: CyclicaDB,
@@ -69,6 +91,44 @@ export class Session {
     this.unreadable = unreadable;
     const stored = await this.getMeta('settings');
     this.settings = { ...DEFAULT_SETTINGS, ...(stored as Partial<Settings> | undefined) };
+    const backup = await this.getMeta('backupState');
+    this.backupState = { ...INITIAL_BACKUP_STATE, ...(backup as Partial<BackupState> | undefined) };
+    this.bump();
+  }
+
+  /**
+   * Gives trusted internal modules (backup, restore, snapshots) temporary use of the data key.
+   * The key itself is non-extractable, so it can only be used for encrypt/decrypt.
+   */
+  async withKey<T>(fn: (key: CryptoKey) => Promise<T>): Promise<T> {
+    return fn(this.key());
+  }
+
+  private async countChange(): Promise<void> {
+    const next = { ...this.backupState, changes: this.backupState.changes + 1 };
+    await this.setMeta('backupState', next);
+    this.backupState = next;
+  }
+
+  /** Called after a backup file has been handed to the share sheet or downloaded. */
+  async markBackedUp(method: 'shared' | 'downloaded', at = nowIso()): Promise<void> {
+    const next: BackupState = {
+      ...this.backupState,
+      changesAtLastBackup: this.backupState.changes,
+      lastBackupAt: at,
+      lastBackupMethod: method,
+    };
+    await this.setMeta('backupState', next);
+    this.backupState = next;
+    this.bump();
+  }
+
+  /** Counts a bulk change (e.g. a restore) as `n` changes, so the next backup reminder reflects it. */
+  async countChanges(n: number): Promise<void> {
+    if (n <= 0) return;
+    const next = { ...this.backupState, changes: this.backupState.changes + n };
+    await this.setMeta('backupState', next);
+    this.backupState = next;
     this.bump();
   }
 
@@ -115,6 +175,7 @@ export class Session {
     const sealed = await sealJson(this.key(), 'record', valid.id, valid);
     await this.db.records.put({ id: valid.id, ...sealed });
     this.records.set(valid.id, valid);
+    await this.countChange();
     this.bump();
     return valid;
   }
@@ -122,6 +183,7 @@ export class Session {
   async remove(id: string): Promise<void> {
     await this.db.records.delete(id);
     this.records.delete(id);
+    await this.countChange();
     this.bump();
   }
 
@@ -152,6 +214,7 @@ export class Session {
     this.dataKey = null;
     this.records.clear();
     this.unreadable = [];
+    this.backupState = INITIAL_BACKUP_STATE;
     this.bump();
     this.listeners.clear();
   }

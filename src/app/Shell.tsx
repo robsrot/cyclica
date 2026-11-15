@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { Session } from '../data/session';
 import { Settings } from '../features/settings/Settings';
+import { BackupReminder } from '../features/data/DataCards';
 import { startAutoLock } from '../security/autoLock';
 import { Card, PageTitle } from '../ui/components';
 import { lockNow } from './appState';
@@ -27,7 +28,12 @@ export function Shell({ session }: { session: Session }) {
             <GearIcon />
           </button>
         </div>
-        {tab === 'today' && <Today />}
+        {tab === 'today' && (
+          <>
+            <BackupReminder session={session} onOpenSettings={() => setTab('settings')} />
+            <Today />
+          </>
+        )}
         {tab === 'patterns' && <Placeholder title="My Patterns" text="Pattern analysis of your own records arrives in milestone M4, once tracking exists." />}
         {tab === 'learn' && <Placeholder title="Learn & Improve" text="The source-verified science library arrives in milestone M5." />}
         {tab === 'settings' && <Settings session={session} />}

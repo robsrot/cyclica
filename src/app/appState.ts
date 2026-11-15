@@ -4,6 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import { CyclicaDB } from '../data/db';
 import { Session } from '../data/session';
+import { wipeAll } from '../data/wipe';
 import { readVault, type Secret, unlock as unlockVault } from '../security/vault';
 
 export type AppStatus =
@@ -57,6 +58,18 @@ export async function unlockWith(secret: Secret): Promise<void> {
 export function lockNow(): void {
   if (status.phase === 'unlocked') status.session.lock();
   set({ phase: 'locked' });
+}
+
+/** Permanently deletes all local data, then returns to first-run setup. */
+export async function deleteEverything(): Promise<void> {
+  if (status.phase === 'unlocked') status.session.lock();
+  set({ phase: 'loading' });
+  try {
+    await wipeAll(db);
+    set({ phase: 'needs-setup' });
+  } catch (e) {
+    set({ phase: 'error', message: describeDbError(e) });
+  }
 }
 
 function describeDbError(e: unknown): string {

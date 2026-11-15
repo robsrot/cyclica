@@ -129,7 +129,7 @@ The app locks after a configurable period in the background or inactive (default
 
 ### 2.4 Encrypted backup file
 
-File name: `cyclica-backup-2026-11-08-1430.cyclica` (a JSON text file).
+File name: `cyclica-backup-2026-11-08-1430.json`. A `.json` extension (rather than a custom one) is used so iOS's file picker and share sheet always accept it. The content is encrypted regardless.
 
 ```
 {

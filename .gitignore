@@ -10,3 +10,6 @@ test-results
 *.cyclica
 cyclica-export-*
 *.tsbuildinfo
+
+# Never commit backups or exports
+cyclica-backup-*

@@ -3,9 +3,11 @@ import { db, openSession } from '../../app/appState';
 import { requestPersistence, type PersistenceStatus } from '../../platform/device';
 import { MIN_PASSPHRASE_LENGTH, createVault } from '../../security/vault';
 import { Button, Card, Field, Notice, Spinner } from '../../ui/components';
+import { RestoreFlow } from '../data/RestoreFlow';
 
 type Step =
   | { s: 'intro' }
+  | { s: 'restore' }
   | { s: 'passphrase' }
   | { s: 'working' }
   | { s: 'recovery'; dataKey: CryptoKey; code: string }
@@ -16,7 +18,16 @@ export function Setup() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-5 px-4 pt-safe pb-safe">
-      {step.s === 'intro' && <Intro onNext={() => setStep({ s: 'passphrase' })} />}
+      {step.s === 'intro' && <Intro onNext={() => setStep({ s: 'passphrase' })} onRestore={() => setStep({ s: 'restore' })} />}
+      {step.s === 'restore' && (
+        <div className="flex flex-col gap-4 pt-8">
+          <h1 className="text-[1.75rem] font-bold tracking-tight">Restore from a backup</h1>
+          <RestoreFlow
+            target={{ kind: 'fresh', db, onRestored: (dataKey) => setStep({ s: 'storage', dataKey, status: null }) }}
+            onClose={() => setStep({ s: 'intro' })}
+          />
+        </div>
+      )}
       {step.s === 'passphrase' && (
         <ChoosePassphrase
           onCreate={async (passphrase) => {
@@ -50,7 +61,7 @@ export function Setup() {
   );
 }
 
-function Intro({ onNext }: { onNext: () => void }) {
+function Intro({ onNext, onRestore }: { onNext: () => void; onRestore: () => void }) {
   return (
     <>
       <div className="pt-10">
@@ -74,9 +85,12 @@ function Intro({ onNext }: { onNext: () => void }) {
       <p className="text-sm text-ink-soft">
         Cyclica is a personal tracking and learning tool. It is not a medical device and doesn't diagnose anything.
       </p>
-      <Button onClick={onNext} className="mt-auto">
-        Set up
-      </Button>
+      <div className="mt-auto flex flex-col gap-3">
+        <Button onClick={onNext}>Set up</Button>
+        <Button variant="secondary" onClick={onRestore}>
+          Restore from a backup
+        </Button>
+      </div>
     </>
   );
 }
@@ -207,8 +221,8 @@ function StorageStep({
         <Notice tone="warn">This browser doesn't support the request. Regular backups are especially important.</Notice>
       )}
       <Notice>
-        Even persistent storage is deleted if you remove Cyclica from your Home Screen. Encrypted backups to iCloud Drive
-        (coming in the next update) are what protect you against that.
+        Even persistent storage is deleted if you remove Cyclica from your Home Screen. Encrypted backup files (Settings → Create
+        backup file, saved to iCloud Drive) are what protect you against that.
       </Notice>
       <Button disabled={status === null} onClick={onFinish} className="mt-auto">
         Open Cyclica

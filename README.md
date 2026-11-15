@@ -9,9 +9,9 @@ A private, local-first menstrual cycle and wellbeing tracker. It's a Progressive
 
 | Milestone | State |
 |---|---|
-| M0 Skeleton, PWA, deploy workflow | Built. Not yet deployed (needs your GitHub repository). |
+| M0 Skeleton, PWA, deploy workflow | Built and deployed to GitHub Pages. |
 | M1 Security core (passphrase, recovery code, encryption, auto-lock) | Built and tested on desktop. **Not yet tested on a real iPhone.** |
-| M2 Backup / restore / export / delete | Not started. **Don't enter real data until M2 is done.** |
+| M2 Backup / restore / export / delete | Built and tested on desktop. **Test backup → delete → restore on your iPhone before trusting it with real data.** |
 | M3–M6 | Not started |
 
 ## Develop on Windows

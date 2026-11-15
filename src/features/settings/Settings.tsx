@@ -12,6 +12,7 @@ import {
 } from '../../platform/device';
 import { MIN_PASSPHRASE_LENGTH, WrongSecretError, changePassphrase, rotateRecoveryCode } from '../../security/vault';
 import { Button, Card, Field, Notice, PageTitle, Spinner } from '../../ui/components';
+import { BackupCard, DeleteCard, ExportCard, RestoreCard, SnapshotsCard } from '../data/DataCards';
 
 const AUTO_LOCK_OPTIONS = [
   { value: 0, label: 'Immediately' },
@@ -25,10 +26,17 @@ export function Settings({ session }: { session: Session }) {
   return (
     <div className="flex flex-col gap-5">
       <PageTitle>Settings</PageTitle>
+      <h2 className="-mb-2 text-sm font-semibold tracking-wide text-ink-soft uppercase">Your data</h2>
+      <BackupCard session={session} />
+      <RestoreCard session={session} />
+      <SnapshotsCard session={session} />
+      <ExportCard session={session} />
+      <h2 className="-mb-2 mt-2 text-sm font-semibold tracking-wide text-ink-soft uppercase">Security</h2>
       <SecurityCard session={session} />
       <PassphraseCard />
       <RecoveryCard />
       <StorageCard session={session} />
+      <DeleteCard />
       <Card>
         <h2 className="mb-2 text-lg font-semibold">About</h2>
         <p className="text-ink-soft">Cyclica {APP_VERSION}. Nothing you enter leaves this device: no account, no analytics, no external services.</p>
@@ -232,7 +240,7 @@ function StorageCard({ session }: { session: Session }) {
         </Button>
       )}
       <p className="mt-4 text-sm text-ink-soft">
-        Removing Cyclica from the Home Screen deletes this storage. Encrypted backups arrive in the next update.
+        Removing Cyclica from the Home Screen deletes this storage. Your encrypted backup files are what protect you against that.
       </p>
     </Card>
   );

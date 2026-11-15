@@ -33,11 +33,20 @@ export interface MetaRow extends Sealed {
   key: string;
 }
 
+/** An encrypted copy of all data, taken automatically before risky operations (restore-replace, future migrations). */
+export interface SnapshotRow extends Sealed {
+  id: string;
+  createdAt: string;
+  reason: string;
+  recordCount: number;
+}
+
 export class CyclicaDB extends Dexie {
   vault!: Table<VaultRow, string>;
   records!: Table<SealedRow, string>;
   meta!: Table<MetaRow, string>;
   blobs!: Table<SealedRow, string>;
+  snapshots!: Table<SnapshotRow, string>;
 
   constructor(name: string = DB_NAME) {
     super(name);
@@ -46,6 +55,10 @@ export class CyclicaDB extends Dexie {
       records: 'id',
       meta: 'key',
       blobs: 'id',
+    });
+    // v2 (M2): automatic pre-restore snapshots. Purely additive; existing data is untouched.
+    this.version(2).stores({
+      snapshots: 'id, createdAt',
     });
   }
 }
